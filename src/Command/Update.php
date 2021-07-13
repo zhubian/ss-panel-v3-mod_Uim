@@ -27,10 +27,6 @@ class Update extends Command
         // 检查并创建新增的配置项
         echo DefaultConfig::detectConfigs();
 
-        echo ('开始升级客户端...' . PHP_EOL);
-        Job::updatedownload();
-        echo ('客户端升级结束' . PHP_EOL);
-
         echo ('开始升级 QQWry...' . PHP_EOL);
         (new Tool($this->argv))->initQQWry();
         echo ('升级 QQWry结束' . PHP_EOL);
@@ -138,7 +134,7 @@ class Update extends Command
         system('php ' . BASE_PATH . '/composer.phar install -d ' . BASE_PATH);
         echo ('升级composer依赖结束，请自行根据上方输出确认是否升级成功' . PHP_EOL);
         system('rm -rf ' . BASE_PATH . '/storage/framework/smarty/compile/*');
-        system('chown -R www:www ' . BASE_PATH . '/storage');
+        system('chown -R ' . $_ENV['php_user_group'] . ' ' . BASE_PATH . '/storage');
     }
 
     public function addColumns($table, $columu, $type, $isnull, $default, $comment, $after)
@@ -199,28 +195,6 @@ class Update extends Command
                         $table->string('request_ip', 128)->default(null)->comment('请求 IP');
                         $table->dateTime('request_time')->default(null)->comment('请求时间');
                         $table->text('request_user_agent')->comment('请求 UA 信息');
-                    }
-                );
-            }
-            if (!Capsule::schema()->hasTable('telegram_tasks')) {
-                echo ('创建 telegram_tasks 表.' . PHP_EOL);
-                Capsule::schema()->create(
-                    'telegram_tasks',
-                    function (Blueprint $table) {
-                        $table->engine    = 'InnoDB';
-                        $table->charset   = 'utf8mb4';
-                        $table->collation = 'utf8mb4_unicode_ci';
-                        $table->integer('id', true, true);
-                        $table->integer('type')->comment('任务类型');
-                        $table->integer('status')->default(0)->comment('任务状态');
-                        $table->string('chatid', 128)->default(0)->comment('Telegram Chat ID');
-                        $table->string('messageid', 128)->default(0)->comment('Telegram Message ID');
-                        $table->text('content')->default(null)->comment('任务详细内容');
-                        $table->string('process', 32)->default(null)->comment('临时任务进度');
-                        $table->integer('userid', false, true)->default(0)->comment('网站用户 ID');
-                        $table->string('tguserid', 32)->default(0)->comment('Telegram User ID');
-                        $table->bigInteger('executetime', false, true)->comment('任务执行时间');
-                        $table->bigInteger('datetime', false, true)->comment('任务产生时间');
                     }
                 );
             }

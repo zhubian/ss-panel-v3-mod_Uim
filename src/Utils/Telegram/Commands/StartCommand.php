@@ -26,7 +26,7 @@ class StartCommand extends Command
     /**
      * {@inheritdoc}
      */
-    public function handle($arguments)
+    public function handle()
     {
         $Update = $this->getUpdate();
         $Message = $Update->getMessage();
@@ -47,7 +47,7 @@ class StartCommand extends Command
                 'username' => $Message->getFrom()->getUsername(),
             ];
             // 消息内容
-            $MessageText = trim($arguments);
+            $MessageText = implode(' ', array_splice(explode(' ', trim($Message->getText())), 1));
             if (
                 $MessageText != ''
                 && TelegramTools::getUser($SendUser['id']) == null
@@ -64,20 +64,10 @@ class StartCommand extends Command
                 ]
             );
         } else {
-            // 群组
-
-            if ($_ENV['enable_delete_user_cmd'] === true) {
-                TelegramTools::DeleteMessage([
-                    'chatid'      => $ChatID,
-                    'messageid'   => $Message->getMessageId(),
-                ]);
-            }
-
             if ($_ENV['telegram_group_quiet'] === true) {
                 // 群组中不回应
                 return;
             }
-
             // 发送 '输入中' 会话状态
             $this->replyWithChatAction(['action' => Actions::TYPING]);
             // 回送信息
@@ -86,11 +76,6 @@ class StartCommand extends Command
                     'text' => '喵喵喵.',
                 ]
             );
-            // 消息删除任务
-            TelegramTools::DeleteMessage([
-                'chatid'      => $ChatID,
-                'messageid'   => $response->getMessageId(),
-            ]);
         }
     }
 

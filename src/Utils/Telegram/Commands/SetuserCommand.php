@@ -26,7 +26,7 @@ class SetuserCommand extends Command
     /**
      * {@inheritdoc}
      */
-    public function handle($arguments)
+    public function handle()
     {
         $Update = $this->getUpdate();
         $Message = $Update->getMessage();
@@ -44,13 +44,6 @@ class SetuserCommand extends Command
             'username' => $Message->getFrom()->getUsername(),
         ];
 
-        if ($_ENV['enable_delete_user_cmd'] === true) {
-            TelegramTools::DeleteMessage([
-                'chatid'      => $ChatID,
-                'messageid'   => $Message->getMessageId(),
-            ]);
-        }
-
         if (!in_array($SendUser['id'], $_ENV['telegram_admins'])) {
             $AdminUser = User::where('is_admin', 1)->where('telegram_id', $SendUser['id'])->first();
             if ($AdminUser == null) {
@@ -63,11 +56,6 @@ class SetuserCommand extends Command
                             'reply_to_message_id'   => $MessageID,
                         ]
                     );
-                    // 消息删除任务
-                    TelegramTools::DeleteMessage([
-                        'chatid'      => $ChatID,
-                        'messageid'   => $response->getMessageId(),
-                    ]);
                 }
                 return;
             }
@@ -76,14 +64,14 @@ class SetuserCommand extends Command
         // 发送 '输入中' 会话状态
         $this->replyWithChatAction(['action' => Actions::TYPING]);
 
-        return self::Reply($arguments, $SendUser, $Message, $MessageID, $ChatID);
+        return $this->Reply($SendUser, $Message, $MessageID, $ChatID);
     }
 
-    public function Reply($arguments, $SendUser, $Message, $MessageID, $ChatID)
+    public function Reply($SendUser, $Message, $MessageID, $ChatID)
     {
         $User = null;
         $FindUser = null;
-        $arguments = trim($arguments);
+        $arguments = implode(' ', array_splice(explode(' ', trim($Message->getText())), 1));
 
         if ($Message->getReplyToMessage() != null) {
             // 回复源消息用户
@@ -101,12 +89,6 @@ class SetuserCommand extends Command
                         'reply_to_message_id'   => $MessageID,
                     ]
                 );
-                // 消息删除任务
-                TelegramTools::DeleteMessage([
-                    'chatid'      => $ChatID,
-                    'messageid'   => $response->getMessageId(),
-                    'executetime' => $_ENV['delete_admin_message_time']
-                ]);
                 return;
             }
 
@@ -118,18 +100,6 @@ class SetuserCommand extends Command
                         'reply_to_message_id'   => $MessageID,
                     ]
                 );
-                // 消息删除任务
-                TelegramTools::DeleteMessage([
-                    'chatid'      => $ChatID,
-                    'messageid'   => $response->getMessageId(),
-                    'executetime' => $_ENV['delete_admin_message_time']
-                ]);
-                // 储存 Bot 所发的 Message ID
-                TelegramTools::FindUserSave([
-                    'userid'      => $User->id,
-                    'chatid'      => $ChatID,
-                    'messageid'   => $response->getMessageId(),
-                ]);
                 return;
             }
         }
@@ -156,12 +126,6 @@ class SetuserCommand extends Command
                     'reply_to_message_id'   => $MessageID,
                 ]
             );
-            // 消息删除任务
-            TelegramTools::DeleteMessage([
-                'chatid'      => $ChatID,
-                'messageid'   => $response->getMessageId(),
-                'executetime' => $_ENV['delete_admin_message_time']
-            ]);
             return;
         }
 
@@ -180,12 +144,6 @@ class SetuserCommand extends Command
                         'reply_to_message_id'   => $MessageID,
                     ]
                 );
-                // 消息删除任务
-                TelegramTools::DeleteMessage([
-                    'chatid'      => $ChatID,
-                    'messageid'   => $response->getMessageId(),
-                    'executetime' => $_ENV['delete_admin_message_time']
-                ]);
                 return;
             }
             // 用户识别码
@@ -204,12 +162,6 @@ class SetuserCommand extends Command
                         'reply_to_message_id'   => $MessageID,
                     ]
                 );
-                // 消息删除任务
-                TelegramTools::DeleteMessage([
-                    'chatid'      => $ChatID,
-                    'messageid'   => $response->getMessageId(),
-                    'executetime' => $_ENV['delete_admin_message_time']
-                ]);
                 return;
             }
             // 选项
@@ -244,12 +196,6 @@ class SetuserCommand extends Command
                         'reply_to_message_id'   => $MessageID,
                     ]
                 );
-                // 消息删除任务
-                TelegramTools::DeleteMessage([
-                    'chatid'      => $ChatID,
-                    'messageid'   => $response->getMessageId(),
-                    'executetime' => $_ENV['delete_admin_message_time']
-                ]);
                 return;
             }
         }
@@ -266,12 +212,6 @@ class SetuserCommand extends Command
                     'reply_to_message_id'   => $MessageID,
                 ]
             );
-            // 消息删除任务
-            TelegramTools::DeleteMessage([
-                'chatid'      => $ChatID,
-                'messageid'   => $response->getMessageId(),
-                'executetime' => $_ENV['delete_admin_message_time']
-            ]);
             return;
         }
         // ############## 字段选项处理 ##############
@@ -284,12 +224,6 @@ class SetuserCommand extends Command
                 'reply_to_message_id'   => $MessageID,
             ]
         );
-        // 消息删除任务
-        TelegramTools::DeleteMessage([
-            'chatid'      => $ChatID,
-            'messageid'   => $response->getMessageId(),
-            'executetime' => $_ENV['delete_admin_message_time']
-        ]);
         return;
     }
 }

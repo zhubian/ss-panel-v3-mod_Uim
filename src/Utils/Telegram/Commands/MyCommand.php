@@ -27,7 +27,7 @@ class MyCommand extends Command
     /**
      * {@inheritdoc}
      */
-    public function handle($arguments)
+    public function handle()
     {
         $Update = $this->getUpdate();
         $Message = $Update->getMessage();
@@ -39,13 +39,6 @@ class MyCommand extends Command
         $ChatID = $Message->getChat()->getId();
 
         if ($ChatID < 0) {
-            // 群组
-            if ($_ENV['enable_delete_user_cmd'] === true) {
-                TelegramTools::DeleteMessage([
-                    'chatid'      => $ChatID,
-                    'messageid'   => $MessageID,
-                ]);
-            }
             if ($_ENV['telegram_group_quiet'] === true) {
                 // 群组中不回应
                 return;
@@ -82,12 +75,7 @@ class MyCommand extends Command
                 $response = $this->triggerCommand('menu');
             } else {
                 // 群组
-                $response = self::Group($User, $SendUser, $ChatID, $Message, $MessageID);
-                // 消息删除任务
-                TelegramTools::DeleteMessage([
-                    'chatid'      => $ChatID,
-                    'messageid'   => $response->getMessageId(),
-                ]);
+                $response = $this->Group($User, $SendUser, $ChatID, $Message, $MessageID);
             }
         }
 

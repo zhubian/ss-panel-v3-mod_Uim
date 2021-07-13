@@ -26,7 +26,7 @@ class UnbindCommand extends Command
     /**
      * {@inheritdoc}
      */
-    public function handle($arguments)
+    public function handle()
     {
         $Update = $this->getUpdate();
         $Message = $Update->getMessage();
@@ -64,7 +64,7 @@ class UnbindCommand extends Command
             }
 
             // 消息内容
-            $MessageText = trim($arguments);
+            $MessageText = implode(' ', array_splice(explode(' ', trim($Message->getText())), 1));
 
             if ($MessageText == $User->email) {
                 $temp = $User->TelegramReset();
@@ -79,7 +79,7 @@ class UnbindCommand extends Command
                 return;
             }
 
-            $text = self::sendtext();
+            $text = $this->sendtext();
             if ($MessageText != '') {
                 $text = '键入的 Email 地址与您的账户不匹配.';
             }
@@ -91,13 +91,6 @@ class UnbindCommand extends Command
                     'parse_mode'            => 'Markdown',
                 ]
             );
-        } else {
-            if ($_ENV['enable_delete_user_cmd'] === true) {
-                TelegramTools::DeleteMessage([
-                    'chatid'      => $ChatID,
-                    'messageid'   => $MessageID,
-                ]);
-            }
         }
     }
 
